@@ -1,16 +1,12 @@
 package com.server.core;
 /* Copyright (c) 2014, Oracle and/or its affiliates. All rights reserved.*/
-
-import java.awt.TexturePaint;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+
 import java.net.Socket;
 
-import android.R.string;
+import com.server.log.LogHelper;
+
 
 /*
  * DESCRIPTION
@@ -59,16 +55,22 @@ public class ReadEngine implements Runnable
         
         while(true)
         {
+            boolean isClose = isServerClose(socket);//判断是否断开  
+            if (isClose)
+            {
+                break;
+            }
             try
             {
                 bufNumber = dis.read(buffer, 0, 1024);
-                if (bufNumber == 0)
+                String msg = new String(buffer, "utf-8");
+                msg = msg.trim();
+                if (msg.trim().length() == 0)
                 {
                     continue;
                 }
-                String msg = new String(buffer, "utf-8");
-                msg = msg.trim();
-                System.out.println(String.format("read [%s] from client",msg));
+                
+                LogHelper.println(String.format("read [%s] from client",msg));
                 sb.append(msg);
                 
                 String currentMsg = sb.toString();
@@ -95,6 +97,7 @@ public class ReadEngine implements Runnable
                 }
                 
                 sb = new StringBuilder(currentMsg);
+                buffer[0] = '\0';
             }
             catch (IOException exception)
             {
@@ -102,6 +105,32 @@ public class ReadEngine implements Runnable
             }
         }
         
+        try
+        {
+            socket.close();
+        } catch (IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
+
+    private boolean isServerClose(Socket socket2)
+    {
+        if (socket2.isClosed())
+        {
+            return true;
+        }
+        try{  
+            socket2.sendUrgentData(0);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信  
+            return false;  
+        }
+        catch(Exception se)
+        {  
+            return true;  
+      
+        }  
     }
 
     

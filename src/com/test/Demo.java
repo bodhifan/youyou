@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.server.log.LogHelper;
 import com.test.engine.MsgEngine;
 
 /*
@@ -18,7 +19,7 @@ import com.test.engine.MsgEngine;
  *    <other useful comments, qualifications, etc.>
  *
  * MODIFIED    (MM/DD/YY)
- *   bofan     2016Äê4ÔÂ3ÈÕ - Creation
+ *   bofan     2016ï¿½ï¿½4ï¿½ï¿½3ï¿½ï¿½ - Creation
  *
  */
 public class Demo
@@ -26,14 +27,11 @@ public class Demo
     public static void main(String[] args) throws IOException
     {
    
-        @SuppressWarnings("resource")
-        ServerSocket server=new ServerSocket(8885);
-        Socket socket = server.accept();
+        // åŠ å…¥lengthæ ‡ç¤º
+        String msg = "è¿™é‡Œæ˜¯æœåŠ¡å™¨";
+        msg = String.format("length:%05d%s", msg.length(),msg);
+        LogHelper.println("translate message:" + msg);
         
-        Thread thread = new Thread(new MsgEngine(socket));
-        thread.start();
-        System.out.println("hello");
-        
-        System.in.read();
+        System.out.println(msg.getBytes("UTF-8"));
     }
 }

@@ -4,7 +4,13 @@ package com.server.core;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
+
+import com.server.log.LogHelper;
+
+import android.R.bool;
 
 /*
  * DESCRIPTION
@@ -42,39 +48,73 @@ public class WriteEngine implements Runnable
         byte[] buffer = new byte[1024];
         int bufNumber = 0;
         
-        DataOutputStream dos = null;
+        OutputStream outPut;
+        PrintWriter outWriter = null;
         try
         {
-            dos = new DataOutputStream(socket.getOutputStream());
+            outPut = socket.getOutputStream();
+            outWriter=new PrintWriter(outPut);
             
         } catch (IOException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } 
+        }
         
         while(true)
         {
             try
             {
+                boolean isClose = isServerClose(socket);//判断是否断开  
+                if (isClose)
+                {
+                    break;
+                }
                 String msg = writtingMsgQueue.fetch();
-                
-                System.out.println(String.format("write msg [%s] from server",msg));
+               
                 // 加入length标示
                 msg = String.format("length:%05d%s", msg.length(),msg);
+                LogHelper.println("translate message:" + msg);
                 
-                // 转换为utf-8的标示符号
-                byte[] msgBytes = msg.getBytes("utf-8");
-                
-                dos.writeBytes(new String(msgBytes));
-                dos.flush();
+                outWriter.write(new String(msg.getBytes("UTF-8")));
+                outWriter.flush();
             }
-            catch (IOException | InterruptedException exception)
+            catch (IOException ex)
+            {
+                System.out.println( ex.getMessage());
+            }
+            catch (InterruptedException exception)
             {
                 System.out.println( exception.getMessage());
             }
         }
         
+        try
+        {
+            socket.close();
+        } catch (IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
+
+    private boolean isServerClose(Socket socket2)
+    {
+        if (socket2.isClosed())
+        {
+            return true;
+        }
+        try{  
+            socket2.sendUrgentData(0);//发送1个字节的紧急数据，默认情况下，服务器端没有开启紧急数据处理，不影响正常通信  
+            return false;  
+        }
+        catch(Exception se)
+        {  
+            return true;  
+      
+        }  
     }
 
 }

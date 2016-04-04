@@ -11,6 +11,8 @@ import com.android.uiautomator.core.UiObjectNotFoundException;
 import com.android.uiautomator.core.UiScrollable;
 import com.android.uiautomator.core.UiSelector;
 import com.android.uiautomator.testrunner.UiAutomatorTestCase;
+import com.server.log.LogHelper;
+import com.server.manager.DispatchCenter;
 import com.server.manager.ServerContext;
 import com.test.engine.MsgEngine;
 
@@ -38,12 +40,17 @@ public class TestRegister extends UiAutomatorTestCase
         
         ServerContext context = new ServerContext(42222);
         context.BeginServer();
+        DispatchCenter dispatchCenter = new DispatchCenter(context);
         
-        context.getWrittingMsgQueue().add("你好，这是服务器给你发送的消息");
+        context.getWrittingMsgQueue().add("你大爷 uuuu");
         
         String msg = context.getReceivedMsgQueue().fetch();
         
-        System.out.println("我接收到客户端传来的消息：" + msg);
+        if (msg.contains("客服端"))
+        {
+            LogHelper.println("sucess recevie msg from client");
+        }else
+            LogHelper.println("failed recevie msg from client");
         
         System.in.read();
 
